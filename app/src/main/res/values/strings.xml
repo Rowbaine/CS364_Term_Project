@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mood Diary</string>
+
+    <!-- Home -->
+    <string name="home_title">Mood Diary</string>
+    <string name="greet_morning">Good morning ~</string>
+    <string name="greet_afternoon">Good afternoon ~</string>
+    <string name="greet_evening">Good evening ~</string>
+    <string name="streak_days">%1$d-day streak</string>
+    <string name="recent_entries">Recent entries</string>
+    <string name="empty_title">No entries yet</string>
+    <string name="empty_sub">Tap the + button below to log your first mood</string>
+    <string name="draft_title">You have an unsaved draft</string>
+    <string name="draft_sub">%1$s · edited %2$s</string>
+    <string name="draft_continue">Continue</string>
+    <string name="toast_press_back_again">Press back again to exit</string>
+    <string name="toast_coming_soon">Coming soon</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_add">Add new entry</string>
+    <string name="back">Back</string>
+
+    <!-- Pick -->
+    <string name="pick_title">How do you feel today?</string>
+    <string name="pick_sub">Tap the fruit that matches your mood</string>
+    <string name="pick_selected">You feel %1$s — %2$s</string>
+    <string name="pick_next">Next: write a note</string>
+
+    <!-- Write -->
+    <string name="write_title">Tell me about it~</string>
+    <string name="write_label">Today\'s short note</string>
+    <string name="write_placeholder">What happened today…</string>
+    <string name="write_counter">%1$d / %2$d</string>
+    <string name="write_autosaved">Draft saved %1$s</string>
+    <string name="write_prompt_hint">Not sure how to start? Tap to add</string>
+    <string name="prompt_good">Something good today was</string>
+    <string name="prompt_thanks">I\'m thankful for</string>
+    <string name="prompt_tomorrow">Tomorrow I want to</string>
+    <string name="write_save">Save</string>
+    <string name="leave_title">Leave this page?</string>
+    <string name="leave_message">Your text will be kept as a draft. You can continue it from Home.</string>
+    <string name="leave_stay">Keep writing</string>
+    <string name="leave_go">Leave</string>
+
+    <!-- Detail -->
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="delete_title">Delete this entry?</string>
+    <string name="delete_message">This can\'t be undone.</string>
+    <string name="delete_confirm">Delete</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_day">Day</string>
+    <string name="theme_night">Night</string>
+    <string name="settings_reminder">Daily reminder</string>
+    <string name="settings_reminder_sub">Every day at 20:00</string>
+    <string name="settings_portrait">Portrait only</string>
+    <string name="settings_portrait_sub">Rotation is locked so nothing overflows</string>
+    <string name="settings_delete_all">Delete all entries</string>
+    <string name="delete_all_title">Delete all entries?</string>
+    <string name="delete_all_confirm">Delete all</string>
+    <string name="settings_version">Mood Diary version %1$s</string>
+
+    <!-- Moods -->
+    <string name="mood_happy">Happy</string>
+    <string name="mood_calm">Calm</string>
+    <string name="mood_meh">Meh</string>
+    <string name="mood_sad">Sad</string>
+    <string name="mood_angry">Grumpy</string>
+    <string name="mood_tired">Tired</string>
+    <string name="hint_happy">keep this sunshine!</string>
+    <string name="hint_calm">quiet days are nice too</string>
+    <string name="hint_meh">tell me what happened</string>
+    <string name="hint_sad">it\'s okay, write it out slowly</string>
+    <string name="hint_angry">let it all out here</string>
+    <string name="hint_tired">get some good rest</string>
+</resources>

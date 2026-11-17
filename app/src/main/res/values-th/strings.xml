@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">สมุดอารมณ์</string>
+
+    <string name="home_title">สมุดอารมณ์</string>
+    <string name="greet_morning">สวัสดีตอนเช้า ~</string>
+    <string name="greet_afternoon">สวัสดีตอนบ่าย ~</string>
+    <string name="greet_evening">สวัสดีตอนเย็น ~</string>
+    <string name="streak_days">ต่อเนื่อง %1$d วัน</string>
+    <string name="recent_entries">บันทึกล่าสุด</string>
+    <string name="empty_title">ยังไม่มีบันทึกเลย</string>
+    <string name="empty_sub">แตะปุ่ม + ด้านล่าง เพื่อบันทึกอารมณ์แรกของคุณ</string>
+    <string name="draft_title">มีบันทึกที่เขียนค้างไว้</string>
+    <string name="draft_sub">%1$s · แก้ไขล่าสุด %2$s</string>
+    <string name="draft_continue">เขียนต่อ</string>
+    <string name="toast_press_back_again">กดย้อนกลับอีกครั้งเพื่อออกจากแอป</string>
+    <string name="toast_coming_soon">เร็วๆ นี้</string>
+
+    <string name="nav_home">หน้าหลัก</string>
+    <string name="nav_calendar">ปฏิทิน</string>
+    <string name="nav_stats">สถิติ</string>
+    <string name="nav_settings">ตั้งค่า</string>
+    <string name="nav_add">เพิ่มบันทึกใหม่</string>
+    <string name="back">ย้อนกลับ</string>
+
+    <string name="pick_title">วันนี้รู้สึกยังไงบ้าง?</string>
+    <string name="pick_sub">แตะผลไม้ที่ตรงกับใจที่สุด 1 ลูก</string>
+    <string name="pick_selected">วันนี้คุณ%1$s — %2$s</string>
+    <string name="pick_next">ถัดไป เขียนบันทึก</string>
+
+    <string name="write_title">เล่าให้ฟังหน่อย~</string>
+    <string name="write_label">บันทึกสั้นๆ ของวันนี้</string>
+    <string name="write_placeholder">วันนี้มีอะไรเกิดขึ้นบ้าง…</string>
+    <string name="write_counter">%1$d / %2$d</string>
+    <string name="write_autosaved">บันทึกร่างอัตโนมัติแล้ว %1$s</string>
+    <string name="write_prompt_hint">ไม่รู้จะเริ่มยังไง? แตะเพื่อเติมคำ</string>
+    <string name="prompt_good">เรื่องดีๆ วันนี้คือ</string>
+    <string name="prompt_thanks">ขอบคุณที่</string>
+    <string name="prompt_tomorrow">พรุ่งนี้อยาก</string>
+    <string name="write_save">บันทึกเลย</string>
+    <string name="leave_title">ออกจากหน้านี้ไหม?</string>
+    <string name="leave_message">ข้อความที่เขียนไว้จะถูกเก็บเป็นร่าง กลับมาเขียนต่อได้จากหน้าหลัก</string>
+    <string name="leave_stay">เขียนต่อ</string>
+    <string name="leave_go">ออก</string>
+
+    <string name="edit">แก้ไข</string>
+    <string name="delete">ลบ</string>
+    <string name="delete_title">ลบบันทึกนี้ใช่ไหม?</string>
+    <string name="delete_message">ลบแล้วจะกู้คืนไม่ได้นะ</string>
+    <string name="delete_confirm">ลบเลย</string>
+    <string name="cancel">ยกเลิก</string>
+
+    <string name="settings_title">ตั้งค่า</string>
+    <string name="settings_language">ภาษา</string>
+    <string name="settings_theme">ธีม</string>
+    <string name="theme_day">กลางวัน</string>
+    <string name="theme_night">กลางคืน</string>
+    <string name="settings_reminder">เตือนให้เขียนทุกวัน</string>
+    <string name="settings_reminder_sub">ทุกวันเวลา 20:00</string>
+    <string name="settings_portrait">แสดงผลแนวตั้งเท่านั้น</string>
+    <string name="settings_portrait_sub">ล็อกการหมุนจอ เพื่อให้หน้าจอไม่ล้นหรือซ้อนกัน</string>
+    <string name="settings_delete_all">ลบบันทึกทั้งหมด</string>
+    <string name="delete_all_title">ลบบันทึกทั้งหมดใช่ไหม?</string>
+    <string name="delete_all_confirm">ลบทั้งหมด</string>
+    <string name="settings_version">สมุดอารมณ์ เวอร์ชัน %1$s</string>
+
+    <string name="mood_happy">ดีใจ</string>
+    <string name="mood_calm">สบายใจ</string>
+    <string name="mood_meh">เฉยๆ</string>
+    <string name="mood_sad">เศร้า</string>
+    <string name="mood_angry">หงุดหงิด</string>
+    <string name="mood_tired">เหนื่อย</string>
+    <string name="hint_happy">เก็บความสดใสนี้ไว้นะ</string>
+    <string name="hint_calm">วันเรียบๆ ก็ดีเหมือนกัน</string>
+    <string name="hint_meh">ลองเล่าดูว่าเกิดอะไรขึ้นบ้าง</string>
+    <string name="hint_sad">ไม่เป็นไรนะ ค่อยๆ เขียนออกมา</string>
+    <string name="hint_angry">ระบายตรงนี้ได้เลย</string>
+    <string name="hint_tired">พักผ่อนเยอะๆ นะ</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- สีพื้นหลังก่อน Compose วาดเสร็จ (Day) -->
+    <color name="wood_bg">#FFF2DFBF</color>
+    <color name="launcher_bg">#FFF2DFBF</color>
+</resources>
