@@ -3,6 +3,8 @@
 แอปบันทึกอารมณ์ประจำวัน: เลือกผลไม้ตามอารมณ์ แล้วเขียนบันทึกสั้นๆ (ไม่เกิน 200 ตัวอักษร)
 ธีม "ไม้ฮิโนกิ × ผลไม้น่ารัก" (ญี่ปุ่น + Watermelon Drop) · Kotlin + Jetpack Compose
 
+🎨 **Figma (UI + Prototype):** [เปิดไฟล์ออกแบบใน Figma](https://www.figma.com/design/ykMCAPkxdlLbhNxbFv21Kg)
+
 ## เปิดโปรเจกต์
 
 1. Android Studio (Ladybug ขึ้นไป) → **Open** → เลือกโฟลเดอร์นี้
