@@ -83,28 +83,54 @@ fun WriteScreen(
 ) {
     val c = MoodTheme.colors
     val locale = LocalConfiguration.current.locales[0]
-    val original = remember(entryId) { entryId?.let { vm.entry(it)?.text }.orEmpty() }
+    val originalEntry = remember(entryId) {
+        entryId?.let { vm.entry(it) }
+    }
+    val original = originalEntry?.text.orEmpty()
+    val isSaving = remember { mutableStateOf(false) }
+
 
     // ข้อ 4.4: ถ้ามีร่างของบันทึกนี้ค้างไว้ ให้เริ่มจากร่างนั้น
-    var text by rememberSaveable {
+
+    var text by rememberSaveable(entryId, mood.key) {
         val d = vm.draft.value
-        mutableStateOf(if (d != null && d.entryId == entryId) d.text else original)
+
+        mutableStateOf(
+            if (d != null && d.entryId == entryId) {
+                d.text
+            } else {
+                original
+            }
+        )
     }
+
     var savedAt by remember { mutableLongStateOf(0L) }
+
     var showLeave by rememberSaveable { mutableStateOf(false) }
-    val changed = text != original && text.isNotBlank()
+
+    var didSave by rememberSaveable { mutableStateOf(false) }
+
+    val changed = text != original || (entryId != null && mood != originalEntry?.mood)
 
     // บันทึกร่างอัตโนมัติหลังหยุดพิมพ์ 0.5 วินาที
-    LaunchedEffect(text) {
-        if (!changed) return@LaunchedEffect
+    LaunchedEffect(text, mood, didSave) {
+        if (!changed || didSave) {
+            return@LaunchedEffect
+        }
+
         delay(500)
-        vm.saveDraft(mood, text, entryId)
-        savedAt = System.currentTimeMillis()
+
+        if (!didSave) {
+            vm.saveDraft(mood, text, entryId)
+            savedAt = System.currentTimeMillis()
+        }
     }
-    // สลับไปแอปอื่น / ปิดจอ → เก็บร่างทันที
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
-        if (changed) vm.saveDraft(mood, text, entryId)
+        if (changed && !didSave) {
+            vm.saveDraft(mood, text, entryId)
+        }
     }
+
     // ข้อ 4.2: กด Back ระหว่างเขียน → ถามก่อน
     val requestBack: () -> Unit = { if (changed) { showLeave = true } else { onBack() } }
     BackHandler(enabled = changed) { showLeave = true }
@@ -219,7 +245,17 @@ fun WriteScreen(
 
             ChunkyButton(
                 text = stringResource(R.string.write_save),
-                onClick = { vm.save(mood, text, entryId); onSaved() },
+                onClick = {
+                    if (!didSave && text.isNotBlank()) {
+                        didSave = true
+                        vm.save(
+                            mood = mood,
+                            text = text,
+                            entryId = entryId
+                        )
+                        onSaved()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 style = ButtonStyle.Primary,
                 icon = Icons.Rounded.Check,
