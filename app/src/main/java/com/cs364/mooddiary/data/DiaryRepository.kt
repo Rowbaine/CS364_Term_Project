@@ -4,54 +4,91 @@ import android.content.Context
 import com.cs364.mooddiary.model.DiaryEntry
 import com.cs364.mooddiary.model.Draft
 import com.cs364.mooddiary.model.Mood
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.json.JSONArray
-import org.json.JSONObject
+import java.time.LocalDate
+import java.time.ZoneId
 
 /**
- * เก็บบันทึกแบบง่ายใน SharedPreferences (JSON)
- * ถ้าทีมจะเปลี่ยนเป็น Room ให้คงฟังก์ชันเดิม (add / update / delete / clear / entries)
- * หน้าจอทุกหน้าจะใช้ต่อได้ทันทีโดยไม่ต้องแก้ UI
+ * ตัวกลางระหว่าง ViewModel กับฐานข้อมูล Room (เก็บในเครื่อง)
+ *
+ * ฟังก์ชันสาธารณะชุดเดิม (entries / get / add / update / delete / clear) ยังเรียกแบบปกติได้
+ * ViewModel และ UI จึงไม่ต้องแก้: ค่าใน [entries] อัปเดตทันที แล้วจึงเขียนลง Room เบื้องหลัง
+ * จากนั้น Flow ของ Room จะส่งข้อมูลจริงกลับมาซ้ำอีกครั้ง
  */
-class DiaryRepository(context: Context) {
-    private val prefs = context.getSharedPreferences("diary_entries", Context.MODE_PRIVATE)
-    private val _entries = MutableStateFlow(load())
+@OptIn(ExperimentalCoroutinesApi::class)
+class DiaryRepository(
+    context: Context,
+    private val dao: DiaryDao = DiaryDatabase.get(context).diaryDao(),
+) {
+    private val legacyPrefs = context.getSharedPreferences("diary_entries", Context.MODE_PRIVATE)
+
+    // limitedParallelism(1) = งานเขียนทำทีละงานตามลำดับที่เรียก (เพิ่มแล้วลบทันทีจะไม่สลับกัน)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO.limitedParallelism(1))
+
+    private val _entries = MutableStateFlow(loadLegacy())
     val entries: StateFlow<List<DiaryEntry>> = _entries.asStateFlow()
 
+    init {
+        scope.launch {
+            migrateFromPrefs()
+            dao.observeAll().collect { list -> _entries.value = list.map { it.toModel() } }
+        }
+    }
+
     fun get(id: Long): DiaryEntry? = _entries.value.firstOrNull { it.id == id }
+
+    /** ดึงบันทึกของวันที่กำหนด (ตามเขตเวลาของเครื่อง) */
+    fun entriesForDay(date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): Flow<List<DiaryEntry>> {
+        val start = date.atStartOfDay(zone).toInstant().toEpochMilli()
+        val end = date.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+        return dao.observeBetween(start, end).map { list -> list.map { it.toModel() } }
+    }
 
     fun add(mood: Mood, text: String): DiaryEntry {
         val now = System.currentTimeMillis()
         val entry = DiaryEntry(id = now, mood = mood, text = text.trim(), createdAt = now, updatedAt = now)
-        commit(listOf(entry) + _entries.value)
+        _entries.update { (listOf(entry) + it).sortedByDescending { e -> e.createdAt } }
+        scope.launch { dao.insert(entry.toEntity()) }
         return entry
     }
 
     fun update(id: Long, mood: Mood, text: String) {
-        val now = System.currentTimeMillis()
-        commit(_entries.value.map { if (it.id == id) it.copy(mood = mood, text = text.trim(), updatedAt = now) else it })
+        val old = get(id) ?: return
+        val updated = old.copy(mood = mood, text = text.trim(), updatedAt = System.currentTimeMillis())
+        _entries.update { list -> list.map { if (it.id == id) updated else it } }
+        scope.launch { dao.update(updated.toEntity()) }
     }
 
-    fun delete(id: Long) = commit(_entries.value.filterNot { it.id == id })
-
-    fun clear() = commit(emptyList())
-
-    private fun commit(list: List<DiaryEntry>) {
-        val sorted = list.sortedByDescending { it.createdAt }
-        _entries.value = sorted
-        val arr = JSONArray()
-        sorted.forEach {
-            arr.put(JSONObject()
-                .put("id", it.id).put("mood", it.mood.key).put("text", it.text)
-                .put("createdAt", it.createdAt).put("updatedAt", it.updatedAt))
-        }
-        prefs.edit().putString(KEY, arr.toString()).apply()
+    fun delete(id: Long) {
+        _entries.update { list -> list.filterNot { it.id == id } }
+        scope.launch { dao.deleteById(id) }
     }
 
-    private fun load(): List<DiaryEntry> {
-        val raw = prefs.getString(KEY, null) ?: return emptyList()
+    fun clear() {
+        _entries.value = emptyList()
+        scope.launch { dao.deleteAll() }
+    }
+
+    /** ย้ายบันทึกเก่าจาก SharedPreferences เข้า Room ครั้งเดียว แล้วลบของเก่าทิ้ง */
+    private suspend fun migrateFromPrefs() {
+        val old = loadLegacy()
+        if (old.isNotEmpty()) dao.insertAll(old.map { it.toEntity() })
+        if (legacyPrefs.contains(KEY)) legacyPrefs.edit().remove(KEY).commit()
+    }
+
+    private fun loadLegacy(): List<DiaryEntry> {
+        val raw = legacyPrefs.getString(KEY, null) ?: return emptyList()
         return runCatching {
             val arr = JSONArray(raw)
             (0 until arr.length()).map { i ->

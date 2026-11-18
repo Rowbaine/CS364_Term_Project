@@ -19,7 +19,10 @@ app/src/main/java/com/cs364/mooddiary/
 ├── MoodDiaryApp.kt           สร้าง repository/draft/settings + ใช้ธีมที่เลือกไว้
 ├── model/Mood.kt             อารมณ์ 6 แบบ + หน้าตาผลไม้ (FaceSpec), DiaryEntry, Draft
 ├── data/
-│   ├── DiaryRepository.kt    เก็บบันทึก (SharedPreferences JSON) + DraftStore (ร่าง)
+│   ├── DiaryEntity.kt        ตาราง diary_entries (วันที่, อีโมจิ, ข้อความ) + ตัวแปลงเป็น DiaryEntry
+│   ├── DiaryDao.kt           คำสั่งฐานข้อมูล: เพิ่ม, แก้ไข, ลบ, ดึงทั้งหมด, ดึงตามวัน
+│   ├── DiaryDatabase.kt      ฐานข้อมูล Room ในเครื่อง (mood_diary.db)
+│   ├── DiaryRepository.kt    ตัวกลางระหว่าง ViewModel กับ Room + DraftStore (ร่าง, SharedPreferences)
 │   └── SettingsStore.kt      ภาษา TH/EN, ธีม Day/Night, การแจ้งเตือน
 └── ui/
     ├── theme/                ★ ธีมทั้งหมด
@@ -57,7 +60,7 @@ fun MyScreen() {
 
 - ข้อความทุกตัวให้ใส่ทั้ง `values/strings.xml` และ `values-th/strings.xml`
 - อย่าใส่สีตรงๆ ในหน้าจอ ให้ใช้ `MoodTheme.colors.xxx` เพื่อให้ Night theme ทำงาน
-- อยากเปลี่ยนไปใช้ Room: ทำคลาสใหม่ที่มีฟังก์ชันเหมือน `DiaryRepository` ได้เลย UI ไม่ต้องแก้
+- เพิ่มหรือเปลี่ยนคอลัมน์ในตาราง: ต้องเพิ่ม `version` ใน `DiaryDatabase.kt` และเขียน Migration ด้วย ไม่อย่างนั้นแอปที่ติดตั้งไว้แล้วจะเปิดไม่ขึ้น
 
 ## เทียบเกณฑ์การให้คะแนน
 
