@@ -1,5 +1,10 @@
 package com.cs364.mooddiary.ui.screens
 
+import android.Manifest
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +29,7 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.StayCurrentPortrait
 import androidx.compose.material.icons.rounded.WbSunny
 import androidx.compose.material3.Icon
@@ -41,12 +47,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 import com.cs364.mooddiary.R
 import com.cs364.mooddiary.data.SettingsStore
 import com.cs364.mooddiary.model.SpecialFaces
+import com.cs364.mooddiary.notify.ReminderNotifier
+import com.cs364.mooddiary.notify.ReminderScheduler
 import com.cs364.mooddiary.ui.DiaryViewModel
 import com.cs364.mooddiary.ui.components.BackButton
 import com.cs364.mooddiary.ui.components.PaperCard
@@ -65,6 +76,17 @@ fun SettingsScreen(vm: DiaryViewModel, onBack: () -> Unit) {
     var remindDays by remember { mutableStateOf(vm.settings.reminderDays) }
     var showReminder by rememberSaveable { mutableStateOf(false) }
     var confirmWipe by rememberSaveable { mutableStateOf(false) }
+
+    // แจ้งเตือนจริงของระบบ: Android 13+ ต้องขออนุญาตก่อน
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (!granted) Toast.makeText(context, R.string.reminder_permission_denied, Toast.LENGTH_LONG).show()
+    }
+    fun ensureNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
 
     WoodBackground(Modifier.fillMaxSize()) {
         Column(
@@ -85,7 +107,10 @@ fun SettingsScreen(vm: DiaryViewModel, onBack: () -> Unit) {
                 Segmented(
                     options = listOf("th" to "ไทย", "en" to "English"),
                     selected = lang,
-                    onSelect = { SettingsStore.setLanguage(it) },   // Activity จะ recreate พร้อมภาษาใหม่
+                    onSelect = {
+                        vm.settings.language = it                        // จำไว้ให้ข้อความแจ้งเตือนใช้ภาษาเดียวกัน
+                        SettingsStore.setLanguage(it)                    // Activity จะ recreate พร้อมภาษาใหม่
+                    },
                 )
             }
 
@@ -105,7 +130,11 @@ fun SettingsScreen(vm: DiaryViewModel, onBack: () -> Unit) {
                     reminderSummary(reminder, remindMinutes, remindDays), onClick = { showReminder = true }) {
                     Switch(
                         checked = reminder,
-                        onCheckedChange = { reminder = it; vm.settings.reminder = it },
+                        onCheckedChange = {
+                            reminder = it; vm.settings.reminder = it
+                            if (it) ensureNotificationPermission()
+                            ReminderScheduler.sync(context)
+                        },
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = c.primary, checkedThumbColor = WoodPalette.Washi,
                             checkedBorderColor = c.edge, uncheckedBorderColor = c.line,
@@ -113,6 +142,15 @@ fun SettingsScreen(vm: DiaryViewModel, onBack: () -> Unit) {
                         ),
                     )
                 }
+                Spacer(Modifier.height(10.dp))
+                // ปุ่มทดสอบ: ดูหน้าตาแจ้งเตือนจริงได้ทันที ไม่ต้องรอถึงเวลาเตือน
+                SettingRow(Icons.Rounded.NotificationsActive, stringResource(R.string.reminder_test), stringResource(R.string.reminder_test_sub),
+                    onClick = {
+                        ensureNotificationPermission()
+                        if (!ReminderNotifier.show(context) && Build.VERSION.SDK_INT < 33) {
+                            Toast.makeText(context, R.string.reminder_permission_denied, Toast.LENGTH_LONG).show()
+                        }
+                    }) {}
                 Spacer(Modifier.height(10.dp))
                 // ข้อ 3.2: ล็อกแนวตั้ง (ตั้งใน AndroidManifest.xml)
                 SettingRow(Icons.Rounded.StayCurrentPortrait, stringResource(R.string.settings_portrait), stringResource(R.string.settings_portrait_sub)) {
@@ -143,6 +181,8 @@ fun SettingsScreen(vm: DiaryViewModel, onBack: () -> Unit) {
                 remindMinutes = m; remindDays = d
                 vm.settings.reminderMinutes = m; vm.settings.reminderDays = d
                 if (d.isNotEmpty() && !reminder) { reminder = true; vm.settings.reminder = true }
+                if (vm.settings.reminder && d.isNotEmpty()) ensureNotificationPermission()
+                ReminderScheduler.sync(context)
                 showReminder = false
             },
         )

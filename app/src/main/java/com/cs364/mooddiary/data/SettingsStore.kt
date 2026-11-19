@@ -1,6 +1,7 @@
 package com.cs364.mooddiary.data
 
 import android.content.Context
+import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 
@@ -29,6 +30,15 @@ class SettingsStore(context: Context) {
     var reminderDays: Set<Int>
         get() = prefs.getString("reminder_days", "1234567")!!.mapNotNull { it.digitToIntOrNull() }.toSet()
         set(value) { prefs.edit().putString("reminder_days", value.sorted().joinToString("")).apply() }
+
+    /** ภาษาที่ผู้ใช้เลือกล่าสุด (เก็บซ้ำไว้ให้ตัวแจ้งเตือนใช้ เพราะไม่ได้ทำงานผ่าน Activity) */
+    var language: String?
+        get() = prefs.getString("language", null)
+        set(value) { prefs.edit().putString("language", value).apply() }
+
+    /** ภาษาของข้อความแจ้งเตือน: Android 13+ ใช้ค่าของระบบ นอกนั้นใช้ที่เลือกในแอป */
+    fun notificationLanguage(): String =
+        if (Build.VERSION.SDK_INT >= 33) currentLanguage() else (language ?: currentLanguage())
 
     fun applyNightMode() = AppCompatDelegate.setDefaultNightMode(nightMode)
 

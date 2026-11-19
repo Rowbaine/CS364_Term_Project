@@ -119,4 +119,24 @@
     <string name="reminder_sub_days">%1$s at %2$s</string>
     <string name="reminder_sub_off">Off</string>
     <string name="save">Save</string>
+
+    <!-- Calendar: year view -->
+    <string name="calendar_view_month">Month</string>
+    <string name="calendar_view_year">Year</string>
+    <string name="calendar_prev_year">Previous year</string>
+    <string name="calendar_next_year">Next year</string>
+    <string name="calendar_month_days">%1$d days</string>
+    <string name="calendar_month_cd">%1$s, %2$d days logged</string>
+
+    <!-- Stats: year -->
+    <string name="stats_year">This year</string>
+    <string name="stats_year_left">%1$d days left this year</string>
+    <string name="stats_by_month">Days logged per month</string>
+
+    <!-- Notification -->
+    <string name="notif_channel_name">Daily reminder</string>
+    <string name="notif_channel_desc">Reminds you to log your mood each day</string>
+    <string name="reminder_permission_denied">Notifications are turned off. Allow them in system settings to get reminders.</string>
+    <string name="reminder_test">Send a test notification</string>
+    <string name="reminder_test_sub">See what the reminder looks like</string>
 </resources>

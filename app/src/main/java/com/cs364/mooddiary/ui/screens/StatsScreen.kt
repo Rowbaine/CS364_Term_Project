@@ -60,7 +60,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-private enum class Period { WEEK, MONTH }
+private enum class Period { WEEK, MONTH, YEAR }
 
 /** ความต่อเนื่องสูงสุดจากชุดวันที่มีบันทึก */
 private fun bestStreak(days: Set<LocalDate>): Int {
@@ -83,7 +83,7 @@ private fun currentStreak(days: Set<LocalDate>, today: LocalDate): Int {
 }
 
 /**
- * หน้าสถิติ: สลับ สัปดาห์นี้ / เดือนนี้
+ * หน้าสถิติ: สลับ สัปดาห์นี้ / เดือนนี้ / ปีนี้
  * อารมณ์ที่พบบ่อยที่สุด, สัดส่วนอารมณ์ 6 แบบ และความต่อเนื่อง
  */
 @Composable
@@ -94,7 +94,11 @@ fun StatsScreen(vm: DiaryViewModel, onTab: (NavTab) -> Unit, onAdd: () -> Unit) 
     val today = LocalDate.now(zone)
     var period by rememberSaveable { mutableStateOf(Period.WEEK) }
 
-    val from = if (period == Period.WEEK) today.with(DayOfWeek.MONDAY) else today.withDayOfMonth(1)
+    val from = when (period) {
+        Period.WEEK -> today.with(DayOfWeek.MONDAY)
+        Period.MONTH -> today.withDayOfMonth(1)
+        Period.YEAR -> today.withDayOfYear(1)
+    }
     val inRange = remember(entries, period) {
         entries.filter {
             val d = Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate()
@@ -102,7 +106,10 @@ fun StatsScreen(vm: DiaryViewModel, onTab: (NavTab) -> Unit, onAdd: () -> Unit) 
         }
     }
     val allDays = remember(entries) { entries.map { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate() }.toSet() }
-    val loggedDays = inRange.map { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate() }.toSet().size
+    val loggedDaySet = inRange.map { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate() }.toSet()
+    val loggedDays = loggedDaySet.size
+    // จำนวนวันที่บันทึกในแต่ละเดือน (ใช้วาดกราฟของมุมมองรายปี)
+    val daysPerMonth = (1..12).map { m -> loggedDaySet.count { it.monthValue == m } }
     val counts: Map<Mood, Int> = Mood.entries.associateWith { m -> inRange.count { it.mood == m } }
     // อารมณ์ที่พบบ่อยที่สุด (ถ้าเท่ากัน เลือกอันที่บันทึกล่าสุด)
     val top: Mood? = inRange.groupBy { it.mood }.entries
@@ -125,7 +132,11 @@ fun StatsScreen(vm: DiaryViewModel, onTab: (NavTab) -> Unit, onAdd: () -> Unit) 
             }
             item {
                 WoodSegmented(
-                    options = listOf(Period.WEEK to stringResource(R.string.stats_week), Period.MONTH to stringResource(R.string.stats_month)),
+                    options = listOf(
+                        Period.WEEK to stringResource(R.string.stats_week),
+                        Period.MONTH to stringResource(R.string.stats_month),
+                        Period.YEAR to stringResource(R.string.stats_year),
+                    ),
                     selected = period, onSelect = { period = it },
                 )
             }
@@ -154,14 +165,16 @@ fun StatsScreen(vm: DiaryViewModel, onTab: (NavTab) -> Unit, onAdd: () -> Unit) 
                     }
                 }
                 item { Breakdown(counts) }
+                if (period == Period.YEAR) item { MonthlyBars(daysPerMonth, today.monthValue) }
             }
             item {
-                val (title, sub) = if (period == Period.WEEK) {
-                    stringResource(R.string.stats_streak, currentStreak(allDays, today)) to
+                val (title, sub) = when (period) {
+                    Period.WEEK -> stringResource(R.string.stats_streak, currentStreak(allDays, today)) to
                         stringResource(R.string.stats_best, bestStreak(allDays))
-                } else {
-                    stringResource(R.string.stats_month_progress, loggedDays, today.dayOfMonth) to
+                    Period.MONTH -> stringResource(R.string.stats_month_progress, loggedDays, today.dayOfMonth) to
                         stringResource(R.string.stats_month_left, today.lengthOfMonth() - today.dayOfMonth)
+                    Period.YEAR -> stringResource(R.string.stats_month_progress, loggedDays, today.dayOfYear) to
+                        stringResource(R.string.stats_year_left, today.lengthOfYear() - today.dayOfYear)
                 }
                 Row(
                     Modifier.fillMaxWidth().chunky(c.card, c.line).padding(horizontal = 16.dp, vertical = 12.dp),
@@ -208,6 +221,43 @@ private fun Breakdown(counts: Map<Mood, Int>) {
                     }
                     Text(n.toString(), style = MaterialTheme.typography.labelLarge, color = c.text,
                         textAlign = TextAlign.End, modifier = Modifier.width(22.dp))
+                }
+            }
+        }
+    }
+}
+
+/** กราฟแท่งรายปี: จำนวนวันที่บันทึกในแต่ละเดือน (เดือนปัจจุบันใช้สีเข้ม) */
+@Composable
+private fun MonthlyBars(daysPerMonth: List<Int>, currentMonth: Int) {
+    val c = MoodTheme.colors
+    val max = (daysPerMonth.maxOrNull() ?: 0).coerceAtLeast(1)
+    val chartHeight = 88.dp
+    PaperCard(Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.stats_by_month), style = MaterialTheme.typography.titleSmall, color = c.text,
+            modifier = Modifier.padding(bottom = 8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            daysPerMonth.forEachIndexed { i, n ->
+                val month = i + 1
+                Column(
+                    Modifier.weight(1f).semantics { contentDescription = "$month: $n" },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(if (n > 0) n.toString() else "", style = MaterialTheme.typography.labelSmall, color = c.textSub, maxLines = 1)
+                    Box(Modifier.height(chartHeight).fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+                        if (n > 0) {
+                            Box(
+                                Modifier.width(16.dp).height(chartHeight * n / max)
+                                    .background(if (month == currentMonth) c.primary else c.accent, RoundedCornerShape(6.dp))
+                                    .border(2.dp, c.edge, RoundedCornerShape(6.dp)),
+                            )
+                        } else {
+                            Box(Modifier.width(16.dp).height(4.dp).background(c.crate, RoundedCornerShape(50)))
+                        }
+                    }
+                    Text(month.toString(), style = MaterialTheme.typography.labelSmall,
+                        color = if (month == currentMonth) c.text else c.textSub, maxLines = 1,
+                        modifier = Modifier.padding(top = 4.dp))
                 }
             }
         }

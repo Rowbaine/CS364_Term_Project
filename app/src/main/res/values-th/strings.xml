@@ -112,4 +112,24 @@
     <string name="reminder_sub_days">%1$s เวลา %2$s</string>
     <string name="reminder_sub_off">ปิดอยู่</string>
     <string name="save">บันทึก</string>
+
+    <!-- Calendar: year view -->
+    <string name="calendar_view_month">เดือน</string>
+    <string name="calendar_view_year">ปี</string>
+    <string name="calendar_prev_year">ปีก่อน</string>
+    <string name="calendar_next_year">ปีถัดไป</string>
+    <string name="calendar_month_days">%1$d วัน</string>
+    <string name="calendar_month_cd">%1$s บันทึกแล้ว %2$d วัน</string>
+
+    <!-- Stats: year -->
+    <string name="stats_year">ปีนี้</string>
+    <string name="stats_year_left">เหลืออีก %1$d วันในปีนี้</string>
+    <string name="stats_by_month">จำนวนวันที่บันทึกแต่ละเดือน</string>
+
+    <!-- Notification -->
+    <string name="notif_channel_name">เตือนให้เขียนทุกวัน</string>
+    <string name="notif_channel_desc">เตือนให้บันทึกอารมณ์ประจำวัน</string>
+    <string name="reminder_permission_denied">ยังไม่ได้อนุญาตการแจ้งเตือน เปิดได้ที่การตั้งค่าของระบบ</string>
+    <string name="reminder_test">ส่งการแจ้งเตือนทดสอบ</string>
+    <string name="reminder_test_sub">ดูตัวอย่างการแจ้งเตือนจริง</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.cs364.mooddiary.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,11 +39,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,6 +63,7 @@ import com.cs364.mooddiary.ui.components.MoodFace
 import com.cs364.mooddiary.ui.components.NavTab
 import com.cs364.mooddiary.ui.components.PaperCard
 import com.cs364.mooddiary.ui.components.WoodBackground
+import com.cs364.mooddiary.ui.components.WoodSegmented
 import com.cs364.mooddiary.ui.components.chunky
 import com.cs364.mooddiary.ui.theme.MoodTheme
 import com.cs364.mooddiary.ui.theme.WoodPalette
@@ -78,8 +83,15 @@ internal fun monthTitle(ym: YearMonth, locale: Locale): String {
     return "$name $year"
 }
 
+/** ปีในปฏิทิน (ภาษาไทยใช้ พ.ศ.) */
+internal fun yearTitle(year: Int, locale: Locale): String =
+    (if (locale.language == "th") year + 543 else year).toString()
+
+private enum class CalView { MONTH, YEAR }
+
 /**
- * หน้าปฏิทิน: เดือนละหน้า วันที่มีบันทึกจะแสดงหน้าผลไม้ของอารมณ์ล่าสุดในวันนั้น
+ * หน้าปฏิทิน: สลับดู "รายเดือน" หรือ "รายปี"
+ * รายเดือน: เดือนละหน้า วันที่มีบันทึกจะแสดงหน้าผลไม้ของอารมณ์ล่าสุดในวันนั้น
  * แตะวันที่เพื่อดูบันทึกของวันนั้น หรือเขียนย้อนหลังถ้ายังไม่มี
  */
 @Composable
@@ -98,6 +110,7 @@ fun CalendarScreen(
 
     var monthStr by rememberSaveable { mutableStateOf(YearMonth.from(today).toString()) }
     var selectedStr by rememberSaveable { mutableStateOf(today.toString()) }
+    var view by rememberSaveable { mutableStateOf(CalView.MONTH) }
     val month = YearMonth.parse(monthStr)
     val selected = LocalDate.parse(selectedStr)
 
@@ -105,6 +118,7 @@ fun CalendarScreen(
         entries.groupBy { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate() }
     }
     val loggedThisMonth = byDay.keys.count { YearMonth.from(it) == month }
+    val loggedThisYear = byDay.keys.count { it.year == month.year }
     val dayEntries: List<DiaryEntry> = byDay[selected].orEmpty().sortedByDescending { it.createdAt }
     val timeFmt = remember(locale) { DateTimeFormatter.ofPattern("HH:mm", locale) }
     val dayTitleFmt = remember(locale) { DateTimeFormatter.ofPattern("EEEE d MMMM", locale) }
@@ -119,32 +133,64 @@ fun CalendarScreen(
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.calendar_title), style = MaterialTheme.typography.headlineSmall, color = c.text, modifier = Modifier.weight(1f))
-                    SummaryChip(stringResource(R.string.calendar_logged, loggedThisMonth))
+                    SummaryChip(stringResource(R.string.calendar_logged, if (view == CalView.MONTH) loggedThisMonth else loggedThisYear))
                 }
             }
             item {
+                WoodSegmented(
+                    options = listOf(
+                        CalView.MONTH to stringResource(R.string.calendar_view_month),
+                        CalView.YEAR to stringResource(R.string.calendar_view_year),
+                    ),
+                    selected = view, onSelect = { view = it },
+                )
+            }
+            item {
+                val isMonth = view == CalView.MONTH
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    IconSquareButton(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.calendar_prev),
-                        onClick = { monthStr = month.minusMonths(1).toString() })
-                    Text(monthTitle(month, locale), style = MaterialTheme.typography.titleMedium, color = c.text,
+                    IconSquareButton(Icons.AutoMirrored.Rounded.ArrowBack,
+                        stringResource(if (isMonth) R.string.calendar_prev else R.string.calendar_prev_year),
+                        onClick = { monthStr = (if (isMonth) month.minusMonths(1) else month.minusYears(1)).toString() })
+                    Text(if (isMonth) monthTitle(month, locale) else yearTitle(month.year, locale),
+                        style = MaterialTheme.typography.titleMedium, color = c.text,
                         textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
-                    IconSquareButton(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(R.string.calendar_next),
-                        onClick = { monthStr = month.plusMonths(1).toString() })
+                    IconSquareButton(Icons.AutoMirrored.Rounded.ArrowForward,
+                        stringResource(if (isMonth) R.string.calendar_next else R.string.calendar_next_year),
+                        onClick = { monthStr = (if (isMonth) month.plusMonths(1) else month.plusYears(1)).toString() })
                 }
             }
-            item {
-                MonthGrid(month, today, selected, byDay, locale, onPick = { selectedStr = it.toString() })
-            }
-            item {
-                Text(selected.format(dayTitleFmt), style = MaterialTheme.typography.titleSmall, color = c.text,
-                    modifier = Modifier.padding(start = 4.dp, top = 4.dp))
-            }
-            if (dayEntries.isNotEmpty()) {
-                items(dayEntries, key = { it.id }) { e ->
-                    EntryCard(e, timeFmt.format(Instant.ofEpochMilli(e.createdAt).atZone(zone)), onClick = { onOpen(e.id) })
+            if (view == CalView.MONTH) {
+                item {
+                    MonthGrid(month, today, selected, byDay, locale, onPick = { selectedStr = it.toString() })
+                }
+                item {
+                    Text(selected.format(dayTitleFmt), style = MaterialTheme.typography.titleSmall, color = c.text,
+                        modifier = Modifier.padding(start = 4.dp, top = 4.dp))
+                }
+                if (dayEntries.isNotEmpty()) {
+                    items(dayEntries, key = { it.id }) { e ->
+                        EntryCard(e, timeFmt.format(Instant.ofEpochMilli(e.createdAt).atZone(zone)), onClick = { onOpen(e.id) })
+                    }
+                } else {
+                    item { NoEntryCard(future = selected.isAfter(today), onWrite = { onWriteFor(selected) }) }
                 }
             } else {
-                item { NoEntryCard(future = selected.isAfter(today), onWrite = { onWriteFor(selected) }) }
+                // มุมมองรายปี: 12 เดือน เดือนละการ์ด แตะเพื่อเข้าไปดูเดือนนั้น
+                items((1..12).map { YearMonth.of(month.year, it) }.chunked(2)) { pair ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        for (ym in pair) {
+                            MiniMonth(
+                                ym, today, byDay, locale,
+                                onClick = {
+                                    monthStr = ym.toString()
+                                    selectedStr = (if (ym == YearMonth.from(today)) today else ym.atDay(1)).toString()
+                                    view = CalView.MONTH
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
             }
         }
         BottomWoodNav(selected = NavTab.CALENDAR, onTab = onTab, onAdd = onAdd, modifier = Modifier.align(Alignment.BottomCenter))
@@ -236,6 +282,66 @@ private fun DayCell(date: LocalDate, today: LocalDate, isSelected: Boolean, late
                 drawCircle(c.dash, style = Stroke(2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 5f))))
             })
             else -> Spacer(Modifier.size(28.dp))
+        }
+    }
+}
+
+/**
+ * การ์ดเดือนย่อในมุมมองรายปี: ชื่อเดือน + จำนวนวันที่บันทึก + จุดสีอารมณ์ของแต่ละวัน
+ * (สูง 6 แถวเท่ากันทุกเดือน การ์ดจึงเรียงเสมอกัน)
+ */
+@Composable
+private fun MiniMonth(
+    ym: YearMonth,
+    today: LocalDate,
+    byDay: Map<LocalDate, List<DiaryEntry>>,
+    locale: Locale,
+    onClick: () -> Unit,
+    modifier: Modifier,
+) {
+    val c = MoodTheme.colors
+    val isCurrent = ym == YearMonth.from(today)
+    val logged = (1..ym.lengthOfMonth()).count { byDay.containsKey(ym.atDay(it)) }
+    val name = ym.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)
+    val description = stringResource(R.string.calendar_month_cd, name, logged)
+    val lead = ym.atDay(1).dayOfWeek.value - 1       // สัปดาห์เริ่มวันจันทร์
+    val shape = RoundedCornerShape(16.dp)
+    val fg = if (isCurrent) WoodPalette.Ink else c.text
+    val sub = if (isCurrent) WoodPalette.Ink else c.textSub
+    val dash = c.dash
+    val line = c.line
+
+    Column(
+        modifier
+            .chunky(if (isCurrent) c.accent else c.card, if (isCurrent) c.edge else c.line, 16.dp)
+            .clip(shape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = description }
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(name, style = MaterialTheme.typography.labelLarge, color = fg, maxLines = 1, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.calendar_month_days, logged), style = MaterialTheme.typography.labelSmall, color = sub, maxLines = 1)
+        }
+        Canvas(Modifier.fillMaxWidth().height(84.dp)) {
+            val cell = size.width / 7f
+            val rowH = size.height / 6f
+            val r = minOf(cell, rowH) * 0.36f
+            for (d in 1..ym.lengthOfMonth()) {
+                val idx = lead + d - 1
+                val center = Offset((idx % 7) * cell + cell / 2f, (idx / 7) * rowH + rowH / 2f)
+                val date = ym.atDay(d)
+                val latest = byDay[date]?.maxByOrNull { it.createdAt }
+                when {
+                    latest != null -> {
+                        drawCircle(latest.mood.face.color, r, center)
+                        drawCircle(line, r, center, style = Stroke(1.2.dp.toPx()))
+                    }
+                    date.isAfter(today) -> drawCircle(dash.copy(alpha = 0.35f), r * 0.3f, center)
+                    else -> drawCircle(dash, r * 0.45f, center)
+                }
+            }
         }
     }
 }

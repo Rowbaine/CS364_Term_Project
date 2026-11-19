@@ -4,6 +4,7 @@ import android.app.Application
 import com.cs364.mooddiary.data.DiaryRepository
 import com.cs364.mooddiary.data.DraftStore
 import com.cs364.mooddiary.data.SettingsStore
+import com.cs364.mooddiary.notify.ReminderScheduler
 
 class MoodDiaryApp : Application() {
     lateinit var repository: DiaryRepository
@@ -19,5 +20,6 @@ class MoodDiaryApp : Application() {
         drafts = DraftStore(this)
         settings = SettingsStore(this)
         settings.applyNightMode()   // ใช้ธีมที่ผู้ใช้เลือกไว้ตั้งแต่เปิดแอป
+        ReminderScheduler.sync(this)   // ตั้งเวลาเตือนรอบถัดไปให้ตรงกับค่าตั้งค่า
     }
 }

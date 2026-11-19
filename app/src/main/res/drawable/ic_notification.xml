@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ไอคอนเล็กในแถบแจ้งเตือน (ต้องเป็นสีเดียว: ระบบจะเติมสีเอง) ลูกพีชมีใบ -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M12,5.2C7.6,5.2 4.4,8.4 4.4,12.8C4.4,17.2 7.6,20.4 12,20.4C16.4,20.4 19.6,17.2 19.6,12.8C19.6,8.4 16.4,5.2 12,5.2Z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M12.4,5.4C12.8,3.4 14.6,2.4 16.6,2.8C16.2,4.6 14.6,5.8 12.4,5.4Z" />
+</vector>
