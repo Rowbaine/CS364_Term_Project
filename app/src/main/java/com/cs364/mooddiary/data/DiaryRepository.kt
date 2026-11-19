@@ -55,9 +55,10 @@ class DiaryRepository(
         return dao.observeBetween(start, end).map { list -> list.map { it.toModel() } }
     }
 
-    fun add(mood: Mood, text: String): DiaryEntry {
+    /** [createdAt] ใส่เวลาเองได้ (ใช้ตอนเขียนย้อนหลังจากหน้าปฏิทิน) ถ้าไม่ใส่ = ตอนนี้ */
+    fun add(mood: Mood, text: String, createdAt: Long? = null): DiaryEntry {
         val now = System.currentTimeMillis()
-        val entry = DiaryEntry(id = now, mood = mood, text = text.trim(), createdAt = now, updatedAt = now)
+        val entry = DiaryEntry(id = now, mood = mood, text = text.trim(), createdAt = createdAt ?: now, updatedAt = now)
         _entries.update { (listOf(entry) + it).sortedByDescending { e -> e.createdAt } }
         scope.launch { dao.insert(entry.toEntity()) }
         return entry

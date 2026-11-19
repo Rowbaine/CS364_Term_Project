@@ -7,6 +7,9 @@ import com.cs364.mooddiary.model.DiaryEntry
 import com.cs364.mooddiary.model.Draft
 import com.cs364.mooddiary.model.Mood
 import kotlinx.coroutines.flow.StateFlow
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
 class DiaryViewModel(app: Application) : AndroidViewModel(app) {
     private val moodApp = app as MoodDiaryApp
@@ -19,8 +22,13 @@ class DiaryViewModel(app: Application) : AndroidViewModel(app) {
 
     fun entry(id: Long): DiaryEntry? = repo.get(id)
 
-    fun save(mood: Mood, text: String, entryId: Long?) {
-        if (entryId == null) repo.add(mood, text) else repo.update(entryId, mood, text)
+    /** [day] = วันที่ต้องการบันทึกย้อนหลัง (null = วันนี้) */
+    fun save(mood: Mood, text: String, entryId: Long?, day: LocalDate? = null) {
+        if (entryId == null) {
+            val at = day?.takeIf { it != LocalDate.now() }
+                ?.atTime(LocalTime.now())?.atZone(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+            repo.add(mood, text, at)
+        } else repo.update(entryId, mood, text)
         drafts.clear()
     }
 

@@ -20,6 +20,16 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean("reminder", true)
         set(value) { prefs.edit().putBoolean("reminder", value).apply() }
 
+    /** เวลาเตือน (นาทีนับจากเที่ยงคืน) ค่าเริ่มต้น 20:00 */
+    var reminderMinutes: Int
+        get() = prefs.getInt("reminder_minutes", 20 * 60)
+        set(value) { prefs.edit().putInt("reminder_minutes", value).apply() }
+
+    /** วันที่เตือน 1=จันทร์ … 7=อาทิตย์ (ค่าเริ่มต้นทุกวัน) */
+    var reminderDays: Set<Int>
+        get() = prefs.getString("reminder_days", "1234567")!!.mapNotNull { it.digitToIntOrNull() }.toSet()
+        set(value) { prefs.edit().putString("reminder_days", value.sorted().joinToString("")).apply() }
+
     fun applyNightMode() = AppCompatDelegate.setDefaultNightMode(nightMode)
 
     fun setNight(night: Boolean) {

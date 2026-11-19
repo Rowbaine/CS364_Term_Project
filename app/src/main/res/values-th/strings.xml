@@ -76,4 +76,40 @@
     <string name="hint_sad">ไม่เป็นไรนะ ค่อยๆ เขียนออกมา</string>
     <string name="hint_angry">ระบายตรงนี้ได้เลย</string>
     <string name="hint_tired">พักผ่อนเยอะๆ นะ</string>
+
+    <!-- ปฏิทิน -->
+    <string name="calendar_title">ปฏิทิน</string>
+    <string name="calendar_logged">บันทึกแล้ว %1$d วัน</string>
+    <string name="calendar_prev">เดือนก่อน</string>
+    <string name="calendar_next">เดือนถัดไป</string>
+    <string name="calendar_no_entry">ยังไม่มีบันทึกวันนี้</string>
+    <string name="calendar_write_back">เขียนย้อนหลังได้นะ</string>
+    <string name="calendar_future">ยังมาไม่ถึงวันนี้</string>
+    <string name="calendar_write">เขียน</string>
+
+    <!-- สถิติ -->
+    <string name="stats_title">สถิติ</string>
+    <string name="stats_week">สัปดาห์นี้</string>
+    <string name="stats_month">เดือนนี้</string>
+    <string name="stats_logged">บันทึก %1$d วัน</string>
+    <string name="stats_top">อารมณ์ที่พบบ่อยที่สุด</string>
+    <string name="stats_top_count">%1$d จาก %2$d บันทึก</string>
+    <string name="stats_breakdown">สัดส่วนอารมณ์</string>
+    <string name="stats_streak">ต่อเนื่อง %1$d วัน</string>
+    <string name="stats_best">สถิติสูงสุด %1$d วัน</string>
+    <string name="stats_month_progress">บันทึก %1$d จาก %2$d วัน</string>
+    <string name="stats_month_left">เหลืออีก %1$d วันในเดือนนี้</string>
+    <string name="stats_empty">ยังไม่มีบันทึกในช่วงนี้</string>
+    <string name="stats_empty_sub">ลองบันทึกอารมณ์วันนี้ดูสิ</string>
+
+    <!-- เวลาเตือน -->
+    <string name="reminder_title">เวลาเตือนให้เขียน</string>
+    <string name="reminder_days">วันที่เตือน</string>
+    <string name="reminder_preview">วันนี้รู้สึกยังไงบ้าง? มาบันทึกกันเถอะ</string>
+    <string name="reminder_earlier">เร็วขึ้น 30 นาที</string>
+    <string name="reminder_later">ช้าลง 30 นาที</string>
+    <string name="reminder_sub_daily">ทุกวันเวลา %1$s</string>
+    <string name="reminder_sub_days">%1$s เวลา %2$s</string>
+    <string name="reminder_sub_off">ปิดอยู่</string>
+    <string name="save">บันทึก</string>
 </resources>

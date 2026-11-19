@@ -83,4 +83,40 @@
     <string name="hint_sad">it\'s okay, write it out slowly</string>
     <string name="hint_angry">let it all out here</string>
     <string name="hint_tired">get some good rest</string>
+
+    <!-- Calendar -->
+    <string name="calendar_title">Calendar</string>
+    <string name="calendar_logged">%1$d days logged</string>
+    <string name="calendar_prev">Previous month</string>
+    <string name="calendar_next">Next month</string>
+    <string name="calendar_no_entry">No entry for this day</string>
+    <string name="calendar_write_back">You can still write one</string>
+    <string name="calendar_future">This day hasn\'t come yet</string>
+    <string name="calendar_write">Write</string>
+
+    <!-- Stats -->
+    <string name="stats_title">Stats</string>
+    <string name="stats_week">This week</string>
+    <string name="stats_month">This month</string>
+    <string name="stats_logged">%1$d days logged</string>
+    <string name="stats_top">Most frequent mood</string>
+    <string name="stats_top_count">%1$d of %2$d entries</string>
+    <string name="stats_breakdown">Mood breakdown</string>
+    <string name="stats_streak">%1$d-day streak</string>
+    <string name="stats_best">Best streak: %1$d days</string>
+    <string name="stats_month_progress">Logged %1$d of %2$d days</string>
+    <string name="stats_month_left">%1$d days left this month</string>
+    <string name="stats_empty">No entries in this period</string>
+    <string name="stats_empty_sub">Try logging today\'s mood</string>
+
+    <!-- Reminder -->
+    <string name="reminder_title">Reminder time</string>
+    <string name="reminder_days">Remind on</string>
+    <string name="reminder_preview">How do you feel today? Let\'s write it down.</string>
+    <string name="reminder_earlier">30 minutes earlier</string>
+    <string name="reminder_later">30 minutes later</string>
+    <string name="reminder_sub_daily">Every day at %1$s</string>
+    <string name="reminder_sub_days">%1$s at %2$s</string>
+    <string name="reminder_sub_off">Off</string>
+    <string name="save">Save</string>
 </resources>

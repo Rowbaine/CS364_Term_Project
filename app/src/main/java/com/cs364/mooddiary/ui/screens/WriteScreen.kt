@@ -80,6 +80,7 @@ fun WriteScreen(
     entryId: Long?,
     onBack: () -> Unit,
     onSaved: () -> Unit,
+    day: java.time.LocalDate? = null,
 ) {
     val c = MoodTheme.colors
     val locale = LocalConfiguration.current.locales[0]
@@ -251,7 +252,8 @@ fun WriteScreen(
                         vm.save(
                             mood = mood,
                             text = text,
-                            entryId = entryId
+                            entryId = entryId,
+                            day = day,
                         )
                         onSaved()
                     }

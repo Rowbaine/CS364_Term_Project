@@ -61,6 +61,9 @@ fun SettingsScreen(vm: DiaryViewModel, onBack: () -> Unit) {
     val c = MoodTheme.colors
     val lang = remember { SettingsStore.currentLanguage() }
     var reminder by remember { mutableStateOf(vm.settings.reminder) }
+    var remindMinutes by remember { mutableStateOf(vm.settings.reminderMinutes) }
+    var remindDays by remember { mutableStateOf(vm.settings.reminderDays) }
+    var showReminder by rememberSaveable { mutableStateOf(false) }
     var confirmWipe by rememberSaveable { mutableStateOf(false) }
 
     WoodBackground(Modifier.fillMaxSize()) {
@@ -98,7 +101,8 @@ fun SettingsScreen(vm: DiaryViewModel, onBack: () -> Unit) {
             }
 
             PaperCard(Modifier.fillMaxWidth(), contentPadding = 14.dp) {
-                SettingRow(Icons.Rounded.Notifications, stringResource(R.string.settings_reminder), stringResource(R.string.settings_reminder_sub)) {
+                SettingRow(Icons.Rounded.Notifications, stringResource(R.string.settings_reminder),
+                    reminderSummary(reminder, remindMinutes, remindDays), onClick = { showReminder = true }) {
                     Switch(
                         checked = reminder,
                         onCheckedChange = { reminder = it; vm.settings.reminder = it },
@@ -128,6 +132,20 @@ fun SettingsScreen(vm: DiaryViewModel, onBack: () -> Unit) {
             Text(stringResource(R.string.settings_version, "1.0"), style = MaterialTheme.typography.labelSmall,
                 color = c.textSub, modifier = Modifier.align(Alignment.CenterHorizontally))
         }
+    }
+
+    if (showReminder) {
+        ReminderSheet(
+            initialMinutes = remindMinutes,
+            initialDays = remindDays,
+            onDismiss = { showReminder = false },
+            onSave = { m, d ->
+                remindMinutes = m; remindDays = d
+                vm.settings.reminderMinutes = m; vm.settings.reminderDays = d
+                if (d.isNotEmpty() && !reminder) { reminder = true; vm.settings.reminder = true }
+                showReminder = false
+            },
+        )
     }
 
     if (confirmWipe) {
@@ -184,9 +202,13 @@ private fun Segmented(
 }
 
 @Composable
-private fun SettingRow(icon: ImageVector, title: String, sub: String, trailing: @Composable () -> Unit) {
+private fun SettingRow(icon: ImageVector, title: String, sub: String, onClick: (() -> Unit)? = null, trailing: @Composable () -> Unit) {
     val c = MoodTheme.colors
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        (if (onClick != null) Modifier.clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .heightIn(min = 48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Icon(icon, null, tint = c.text)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {

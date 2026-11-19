@@ -69,7 +69,9 @@ import com.cs364.mooddiary.model.Draft
 import com.cs364.mooddiary.model.Mood
 import com.cs364.mooddiary.model.SpecialFaces
 import com.cs364.mooddiary.ui.DiaryViewModel
+import com.cs364.mooddiary.ui.components.BottomWoodNav
 import com.cs364.mooddiary.ui.components.HangingSign
+import com.cs364.mooddiary.ui.components.NavTab
 import com.cs364.mooddiary.ui.components.MoodFace
 import com.cs364.mooddiary.ui.components.MoodPill
 import com.cs364.mooddiary.ui.components.PaperCard
@@ -92,7 +94,7 @@ fun HomeScreen(
     onAdd: () -> Unit,
     onOpen: (Long) -> Unit,
     onContinueDraft: (Draft) -> Unit,
-    onSettings: () -> Unit,
+    onTab: (NavTab) -> Unit,
 ) {
     val entries by vm.entries.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
@@ -192,10 +194,10 @@ fun HomeScreen(
         }
 
         BottomWoodNav(
-            modifier = Modifier.align(Alignment.BottomCenter),
+            selected = NavTab.HOME,
+            onTab = onTab,
             onAdd = onAdd,
-            onSettings = onSettings,
-            onSoon = { Toast.makeText(context, R.string.toast_coming_soon, Toast.LENGTH_SHORT).show() },
+            modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
 }
@@ -257,6 +259,16 @@ private fun WeekStrip(today: LocalDate, byDay: Map<LocalDate, List<DiaryEntry>>,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    Text(day.dayOfWeek.getDisplayName(TextStyle.SHORT, locale),
+                        style = MaterialTheme.typography.labelSmall, color = c.textSub, maxLines = 1)
+                    if (mood != null) {
+                        MoodFace(mood.face, size = 36.dp, blush = false)
+                    } else {
+                        Box(Modifier.size(36.dp).padding(3.dp).drawBehind {
+                            drawCircle(c.dash, style = Stroke(width = 2.5.dp.toPx(),
+                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f))))
+                        })
+                    }
                 }
             }
         }
@@ -264,7 +276,7 @@ private fun WeekStrip(today: LocalDate, byDay: Map<LocalDate, List<DiaryEntry>>,
 }
 
 @Composable
-private fun EntryCard(e: DiaryEntry, time: String, onClick: () -> Unit) {
+internal fun EntryCard(e: DiaryEntry, time: String, onClick: () -> Unit) {
     val c = MoodTheme.colors
     PaperCard(Modifier.fillMaxWidth(), onClick = onClick, contentPadding = 12.dp) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -294,67 +306,5 @@ private fun EmptyState() {
         Text(stringResource(R.string.empty_title), style = MaterialTheme.typography.titleLarge, color = c.text)
         Text(stringResource(R.string.empty_sub), style = MaterialTheme.typography.bodyMedium,
             color = c.textSub, textAlign = TextAlign.Center)
-    }
-}
-
-@Composable
-private fun BottomWoodNav(modifier: Modifier, onAdd: () -> Unit, onSettings: () -> Unit, onSoon: () -> Unit) {
-    val c = MoodTheme.colors
-    Box(modifier.fillMaxWidth()) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 30.dp)
-                .background(c.card, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                .drawBehind { drawRect(c.line, size = androidx.compose.ui.geometry.Size(size.width, 3.dp.toPx())) }
-                .navigationBarsPadding()
-                .height(84.dp)
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            NavItem(Icons.Rounded.Home, stringResource(R.string.nav_home), selected = true, onClick = {}, modifier = Modifier.weight(1f))
-            NavItem(Icons.Rounded.CalendarMonth, stringResource(R.string.nav_calendar), onClick = onSoon, modifier = Modifier.weight(1f))
-            Spacer(Modifier.weight(1f))
-            NavItem(Icons.Rounded.BarChart, stringResource(R.string.nav_stats), onClick = onSoon, modifier = Modifier.weight(1f))
-            NavItem(Icons.Rounded.Settings, stringResource(R.string.nav_settings), onClick = onSettings, modifier = Modifier.weight(1f))
-        }
-        // ปุ่ม + ไม้กลม ลอยอยู่ตรงกลาง
-        val addLabel = stringResource(R.string.nav_add)
-        Box(
-            Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = 2.dp)
-                .size(68.dp)
-                .chunky(c.plank, c.edge, 34.dp, shadow = 5.dp)
-                .clip(CircleShape)
-                .plankGrain(c.plank)
-                .clickable(role = Role.Button, onClickLabel = addLabel, onClick = onAdd),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Rounded.Add, contentDescription = addLabel, tint = c.onPlank, modifier = Modifier.size(34.dp))
-        }
-    }
-}
-
-@Composable
-private fun NavItem(icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier, selected: Boolean = false) {
-    val c = MoodTheme.colors
-    Column(
-        modifier
-            .clip(RoundedCornerShape(16.dp))
-            .clickable(role = Role.Tab, onClick = onClick)
-            .padding(vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Box(
-            Modifier
-                .then(if (selected) Modifier.background(c.accent, RoundedCornerShape(50)).border(2.dp, WoodPalette.Bark, RoundedCornerShape(50)) else Modifier)
-                .padding(horizontal = 14.dp, vertical = 4.dp),
-        ) {
-            Icon(icon, null, tint = if (selected) WoodPalette.Ink else c.textSub, modifier = Modifier.size(22.dp))
-        }
-        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold),
-            color = if (selected) c.text else c.textSub, maxLines = 1)
     }
 }
