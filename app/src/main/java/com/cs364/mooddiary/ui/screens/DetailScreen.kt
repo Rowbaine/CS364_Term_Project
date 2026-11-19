@@ -65,7 +65,9 @@ fun DetailScreen(vm: DiaryViewModel, entryId: Long, onBack: () -> Unit, onEdit: 
     val locale = LocalConfiguration.current.locales[0]
 
     if (entry == null) {
-        LaunchedEffect(Unit) { onBack() }   // ถูกลบไปแล้ว → กลับ
+        LaunchedEffect(entryId) {
+            onBack()
+        }
         return
     }
     val created = Instant.ofEpochMilli(entry.createdAt).atZone(ZoneId.systemDefault())
@@ -120,7 +122,10 @@ fun DetailScreen(vm: DiaryViewModel, entryId: Long, onBack: () -> Unit, onEdit: 
             title = stringResource(R.string.delete_title),
             message = stringResource(R.string.delete_message),
             confirmText = stringResource(R.string.delete_confirm),
-            onConfirm = { confirmDelete = false; vm.delete(entry.id); onBack() },
+            onConfirm = {
+                confirmDelete = false
+                vm.delete(entry.id)
+            },
             dismissText = stringResource(R.string.cancel),
             onDismiss = { confirmDelete = false },
         )

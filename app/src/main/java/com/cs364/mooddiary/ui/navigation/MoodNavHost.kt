@@ -85,10 +85,15 @@ fun MoodNavHost() {
                 mood = Mood.fromKey(back.arguments?.getString("mood")),
                 entryId = entryId,
                 onBack = { nav.popBackStack() },
+
                 onSaved = {
-                    // แก้ไขเสร็จ → กลับหน้ารายละเอียด (ถ้ามาจากหน้านั้น) ไม่งั้นกลับหน้าหลัก
-                    val backToDetail = entryId != null && nav.popBackStack(Routes.DETAIL, inclusive = false)
-                    if (!backToDetail) nav.popBackStack(Routes.HOME, inclusive = false)
+                    val backToDetail = entryId != null && nav.popBackStack(Routes.detail(entryId), inclusive = false)
+                    if (!backToDetail) {
+                        nav.popBackStack(
+                            Routes.HOME,
+                            inclusive = false
+                        )
+                    }
                 },
             )
         }

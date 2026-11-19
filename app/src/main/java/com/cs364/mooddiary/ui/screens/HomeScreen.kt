@@ -175,7 +175,8 @@ fun HomeScreen(
             draft?.let { d ->
                 item(span = full) { DraftBanner(d, locale, onContinue = { onContinueDraft(d) }) }
             }
-            item(span = full) { WeekStrip(today, byDay, locale) }
+            item(span = full) { WeekStrip(today, byDay, locale, onOpen) }
+
 
             if (entries.isEmpty()) {
                 item(span = full) { EmptyState() }
@@ -230,25 +231,32 @@ private fun DraftBanner(d: Draft, locale: Locale, onContinue: () -> Unit) {
 }
 
 @Composable
-private fun WeekStrip(today: LocalDate, byDay: Map<LocalDate, List<DiaryEntry>>, locale: Locale) {
+private fun WeekStrip(today: LocalDate, byDay: Map<LocalDate, List<DiaryEntry>>, locale: Locale, onOpen: (Long) -> Unit) {
     val c = MoodTheme.colors
     PaperCard(Modifier.fillMaxWidth(), contentPadding = 10.dp) {
         Row(Modifier.fillMaxWidth()) {
             for (i in 6 downTo 0) {
                 val day = today.minusDays(i.toLong())
-                val mood: Mood? = byDay[day]?.maxByOrNull { it.createdAt }?.mood
-                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(day.dayOfWeek.getDisplayName(TextStyle.SHORT, locale),
-                        style = MaterialTheme.typography.labelSmall, color = c.textSub, maxLines = 1)
-                    if (mood != null) {
-                        MoodFace(mood.face, size = 36.dp, blush = false)
-                    } else {
-                        Box(Modifier.size(36.dp).padding(3.dp).drawBehind {
-                            drawCircle(c.dash, style = Stroke(width = 2.5.dp.toPx(),
-                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f))))
-                        })
-                    }
+                val dayEntry = byDay[day]?.maxByOrNull {
+                    it.createdAt
+                }
+                val mood: Mood? = dayEntry?.mood
+                val dayModifier = Modifier
+                    .weight(1f)
+                    .then(
+                        if (dayEntry != null) {
+                            Modifier.clickable(role = Role.Button) {
+                                onOpen(dayEntry.id)
+                            }
+                        } else {
+                            Modifier
+                        }
+                    )
+                Column(
+                    dayModifier,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                 }
             }
         }
